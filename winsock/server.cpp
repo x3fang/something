@@ -22,10 +22,25 @@ map<char *, int> ipc;
 map<string, string> stw;
 thread th[10000];
 int thi;
+/*
+ip+"-"+number+"_"+FILE_NAME
+*/
+string get_file_name(string ip, string number, string file_name)
+{
+    string res = ip + "-" + number + "_" + file_name;
+    return res;
+}
+
 void zwc(SOCKET sock, string ip, string number)
 {
     char buf[1024] = {0};
     int flag = 0;
+    /*
+    flag:
+    0: nothing
+    1: open file
+
+    */
     ofstream out;
     ifstream in;
     ip = ip + number;
@@ -34,7 +49,7 @@ void zwc(SOCKET sock, string ip, string number)
         int len = recv(sock, buf, sizeof(buf), 0);
         string temp = buf;
         string An = stw[temp.substr(0, 8)];
-        string answer = temp.substr(9);
+        string answer = (temp.length() >= 9 ? temp.substr(9) : "");
         if (len <= 0)
         {
             cout << "ip:" << ip << "-" << number << " disconnect" << endl;
@@ -48,13 +63,13 @@ void zwc(SOCKET sock, string ip, string number)
         }
         else if (An == MKFILE)
         {
-            out.open(answer.c_str(), ios::out);
+            out.open(get_file_name(ip, number, answer).c_str(), ios::out);
             out.close();
             cout << "ip:" << ip << "-" << number << " create file " << endl;
         }
         else if (An == CATFILE)
         {
-            in.open(answer.c_str(), ios::in);
+            in.open(get_file_name(ip, number, answer).c_str(), ios::in);
             while (!in.eof())
             {
                 getline(in, temp);
@@ -65,21 +80,15 @@ void zwc(SOCKET sock, string ip, string number)
         }
         else if (An == OPENFILE)
         {
-            if (answer.length >= 4)
-            {
-                string AOW = stw[answer.substr(0, 1)];
-                answer = answer.substr(4);
-                if (AOW == "-a")
-                {
-                    out.open(answer.c_str(), ios::app);
-                    cout << "ip:" << ip << "-" << number << " open file with ios::app" << endl;
-                }
-                else if (AOW == "-w")
-                {
-                    out.open(answer.c_str(), ios::out);
-                    cout << "ip:" << ip << "-" << number << " open file with ios::out" << endl;
-                }
-            }
+            out.open(get_file_name(ip, number, answer).c_str(), ios::app);
+            cout << "ip:" << ip << "-" << number << " open file with mode ios::app" << endl;
+            
+            flag = 1;
+        }
+        else if (An == CLOSEFILE && flag == 1)
+        {
+            out.close();
+            flag = 0;
         }
     }
     return;
@@ -89,8 +98,6 @@ int main()
     stw["00000"] = EXIT;
     stw["00100"] = MKFILE;
     stw["01000"] = CATFILE;
-    stw["01110"] = OPENFILE_A;
-    stw["01101"] = OPENFILE_W;
     stw["01101"] = OPENFILE;
     stw["10000"] = CLOSEFILE;
     WSADATA wsadata;

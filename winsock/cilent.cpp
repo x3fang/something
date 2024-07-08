@@ -61,7 +61,11 @@ int main()
     {
         cin.getline(buf, 1024);
         string temp = buf;
-        string sends ;
+        string sends;
+        if (temp.length() < 8)
+        {
+            cout << "ERROR NOT FIND IT" << endl;
+        }
         // cout << temp.substr(0, 8);
         if (temp == EXIT)
         {

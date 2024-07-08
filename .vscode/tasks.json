@@ -3,7 +3,7 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe 生成活动文件(无winsock)",
-            "command": "..\\MinGW64\\bin\\g++.exe",
+            "command": "..\\..\\MinGW64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
@@ -29,7 +29,7 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe 生成活动文件(有winsock)",
-            "command": "..\\MinGW64\\bin\\g++.exe",
+            "command": "..\\..\\MinGW64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
