@@ -12,8 +12,6 @@
 #define OPENFILE ":op_file"
 #define CLOSEFILE ":cl_file"
 #define CATFILE ":ct_file"
-#define OPENFILE_A ":op_file -a"
-#define OPENFILE_W ":op_file -w"
 #define END "\r\nEND\r\n"
 
 #pragma comment(lib, "ws2_32.lib")
@@ -46,10 +44,14 @@ void zwc(SOCKET sock, string ip, string number)
     ip = ip + number;
     while (1)
     {
+        cout << 1;
         int len = recv(sock, buf, sizeof(buf), 0);
         string temp = buf;
-        string An = stw[temp.substr(0, 8)];
-        string answer = (temp.length() >= 9 ? temp.substr(9) : "");
+        string An = stw[temp.substr(0, 5)];
+        cout << An << endl
+             << temp.substr(0, 5) << endl;
+        string answer = (temp.length() >= 6 ? temp.substr(6) : "");
+        cout << answer << endl;
         if (len <= 0)
         {
             cout << "ip:" << ip << "-" << number << " disconnect" << endl;
@@ -82,7 +84,7 @@ void zwc(SOCKET sock, string ip, string number)
         {
             out.open(get_file_name(ip, number, answer).c_str(), ios::app);
             cout << "ip:" << ip << "-" << number << " open file with mode ios::app" << endl;
-            
+
             flag = 1;
         }
         else if (An == CLOSEFILE && flag == 1)

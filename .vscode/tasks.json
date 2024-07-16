@@ -12,7 +12,8 @@
                 "-std=c++11",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-lwsock32"
             ],
             "options": {
                 "cwd": "${fileDirname}"

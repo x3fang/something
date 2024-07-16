@@ -11,13 +11,12 @@
 #define OPENFILE ":op_file"
 #define CLOSEFILE ":cl_file"
 #define CATFILE ":ct_file"
-#define OPENFILE_A ":op_file -a"
-#define OPENFILE_W ":op_file -w"
 #define END "\r\nEND\r\n"
 
 #pragma comment(lib, "ws2_32.lib")
 using namespace std;
 char buf[1024];
+int flag;
 map<string, string> stw;
 WSADATA wsaData;
 SOCKET s;
@@ -27,8 +26,6 @@ void init()
     stw[EXIT] = "00000";
     stw[MKFILE] = "00100";
     stw[CATFILE] = "01000";
-    stw[OPENFILE_A] = "01110";
-    stw[OPENFILE_W] = "01101";
     stw[OPENFILE] = "01101";
     stw[CLOSEFILE] = "10000";
     WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -62,7 +59,7 @@ int main()
         cin.getline(buf, 1024);
         string temp = buf;
         string sends;
-        if (temp.length() < 8)
+        if (temp.length() < 5)
         {
             cout << "ERROR NOT FIND IT" << endl;
         }
@@ -73,14 +70,9 @@ int main()
             closesocket(s);
             break;
         }
-        else if (temp.substr(0, 8) == OPENFILE && temp.length() >= 12)
+        else if (temp.substr(0, 5) == CATFILE && temp.length() >= 7)
         {
-            sends = stw[temp.substr(0, 11)] + " " + temp.substr(12);
-            send(s, sends.c_str(), sends.length(), 0);
-        }
-        if (temp.substr(0, 8) == CATFILE_D)
-        {
-            sends = stw[temp.substr(0, 11)] + " " + temp.substr(12);
+            sends = stw[temp.substr(0, 5)] + temp.substr(7);
             send(s, sends.c_str(), sends.length(), 0);
             string recvs;
             while (recvs != END)
@@ -91,9 +83,44 @@ int main()
                     cout << recv;
             }
         }
-        else if (stw[temp.substr(0, 8)] != "")
+        else if (temp.substr(0, 5) == OPENFILE && temp.length() >= 7)
         {
-            sends = stw[temp.substr(0, 8)] + (temp.length() >= 9 ? " " + temp.substr(9) : "");
+            sends = stw[temp.substr(0, 5)] + temp.substr(7);
+            send(s, sends.c_str(), sends.length(), 0);
+            string recvs;
+            system("cls");
+            while (recvs != END)
+            {
+                recv(s, buf, sizeof(buf), 0);
+                recvs = buf;
+                if (recvs != END)
+                    cout << recv;
+            }
+            while (1)
+            {
+                char now = getch();
+                if (now == 8)
+                {
+                    cout << "\b \b";
+                    send(s, "8", sizeof("8"), 0);
+                }
+                else if (now == 3)
+                {
+                    send(s, "3", sizeof("3"), 0);
+                    break;
+                }
+                else
+                {
+                    cout << now;
+                    send(s, (const char *)now, sizeof(now), 0);
+                }
+            }
+            send(s, END, strlen(END), 0);
+        }
+        else if (stw[temp.substr(0, 5)] != "")
+        {
+            sends = stw[temp.substr(0, 5)] +
+                    (temp.length() >= 7 ? " " + temp.substr(7) : "");
             send(s, sends.c_str(), sends.length(), 0);
         }
         else
