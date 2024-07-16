@@ -3,31 +3,18 @@
 #include <iostream>
 #include <thread>
 #include <fstream>
-#include <string>
-#include <map>
-
-#define EXIT ":to_exit"
-#define MKFILE ":mk_file"
-#define OPENFILE ":op_file"
-#define CLOSEFILE ":cl_file"
-#define CATFILE ":ct_file"
-#define END "\r\nEND\r\n"
+#include <conio.h>
+#include "define.h"
 
 #pragma comment(lib, "ws2_32.lib")
 using namespace std;
 char buf[1024];
 int flag;
-map<string, string> stw;
 WSADATA wsaData;
 SOCKET s;
 SOCKADDR_IN addr;
 void init()
 {
-    stw[EXIT] = "00000";
-    stw[MKFILE] = "00100";
-    stw[CATFILE] = "01000";
-    stw[OPENFILE] = "01101";
-    stw[CLOSEFILE] = "10000";
     WSAStartup(MAKEWORD(2, 2), &wsaData);
     s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     addr.sin_family = AF_INET;
@@ -53,26 +40,29 @@ void init()
 int main()
 {
     // cout << 1;
+
     init();
     while (1)
     {
         cin.getline(buf, 1024);
         string temp = buf;
         string sends;
-        if (temp.length() < 5)
+        
+        if (temp.length() < 8)
         {
             cout << "ERROR NOT FIND IT" << endl;
         }
-        // cout << temp.substr(0, 8);
+        // cout << An;
+        string An = temp.substr(0, 8);
         if (temp == EXIT)
         {
             send(s, EXIT, strlen(EXIT), 0);
             closesocket(s);
             break;
         }
-        else if (temp.substr(0, 5) == CATFILE && temp.length() >= 7)
+        else if (An == CATFILE && temp.length() >= 9)
         {
-            sends = stw[temp.substr(0, 5)] + temp.substr(7);
+            sends = stw_c[An] + temp.substr(9);
             send(s, sends.c_str(), sends.length(), 0);
             string recvs;
             while (recvs != END)
@@ -83,9 +73,9 @@ int main()
                     cout << recv;
             }
         }
-        else if (temp.substr(0, 5) == OPENFILE && temp.length() >= 7)
+        else if (An == OPENFILE && temp.length() >= 9)
         {
-            sends = stw[temp.substr(0, 5)] + temp.substr(7);
+            sends = stw_c[An] + temp.substr(9);
             send(s, sends.c_str(), sends.length(), 0);
             string recvs;
             system("cls");
@@ -94,7 +84,7 @@ int main()
                 recv(s, buf, sizeof(buf), 0);
                 recvs = buf;
                 if (recvs != END)
-                    cout << recv;
+                    cout << recv;  
             }
             while (1)
             {
@@ -102,12 +92,16 @@ int main()
                 if (now == 8)
                 {
                     cout << "\b \b";
-                    send(s, "8", sizeof("8"), 0);
+                    send(s, "\b \b", sizeof("\b \b"), 0);
                 }
-                else if (now == 3)
+                else if (now == 24)
                 {
-                    send(s, "3", sizeof("3"), 0);
+                    send(s, CLOSEFILE, sizeof(CLOSEFILE), 0);
                     break;
+                }
+                else if (now == 15)
+                {
+                    send(s, SAVEFILE, sizeof(SAVEFILE), 0);
                 }
                 else
                 {
@@ -117,10 +111,10 @@ int main()
             }
             send(s, END, strlen(END), 0);
         }
-        else if (stw[temp.substr(0, 5)] != "")
+        else if (stw_c[An] != "")
         {
-            sends = stw[temp.substr(0, 5)] +
-                    (temp.length() >= 7 ? " " + temp.substr(7) : "");
+            sends = stw_c[An] +
+                    (temp.length() >= 9 ? " " + temp.substr(9) : "");
             send(s, sends.c_str(), sends.length(), 0);
         }
         else

@@ -3,21 +3,13 @@
 #include <iostream>
 #include <thread>
 #include <fstream>
-#include <string>
 #include <vector>
-#include <map>
-
-#define EXIT ":to_exit"
-#define MKFILE ":mk_file"
-#define OPENFILE ":op_file"
-#define CLOSEFILE ":cl_file"
-#define CATFILE ":ct_file"
-#define END "\r\nEND\r\n"
+#include "define.h"
 
 #pragma comment(lib, "ws2_32.lib")
 using namespace std;
 map<char *, int> ipc;
-map<string, string> stw;
+
 thread th[10000];
 int thi;
 /*
@@ -44,12 +36,12 @@ void zwc(SOCKET sock, string ip, string number)
     ip = ip + number;
     while (1)
     {
-        cout << 1;
+        // cout << 1;
         int len = recv(sock, buf, sizeof(buf), 0);
         string temp = buf;
-        string An = stw[temp.substr(0, 5)];
-        cout << An << endl
-             << temp.substr(0, 5) << endl;
+        cout << temp.substr(0, 5) << endl;
+        string An = stw_s[temp.substr(0, 5)];
+        cout << An << endl;
         string answer = (temp.length() >= 6 ? temp.substr(6) : "");
         cout << answer << endl;
         if (len <= 0)
@@ -82,10 +74,43 @@ void zwc(SOCKET sock, string ip, string number)
         }
         else if (An == OPENFILE)
         {
+            in.open(get_file_name(ip, number, answer).c_str(), ios::in);
+            while (!in.eof())
+            {
+                getline(in, temp);
+                send(sock, temp.c_str(), sizeof(temp), 0);
+            }
+            in.close();
+            send(sock, END, sizeof(END), 0);
             out.open(get_file_name(ip, number, answer).c_str(), ios::app);
             cout << "ip:" << ip << "-" << number << " open file with mode ios::app" << endl;
-
-            flag = 1;
+            while (1)
+            {
+                int len = recv(sock, buf, sizeof(buf), 0);
+                string answer = buf;
+                if (answer == END)
+                {
+                    out.close();
+                    break;
+                }
+                else if (answer == CLOSEFILE)
+                {
+                    out.close();
+                    cout << "ip:" << ip << "-" << number << " close file" << endl;
+                    break;
+                }
+                else if (answer == SAVEFILE)
+                {
+                    out.close();
+                    out.open(get_file_name(ip, number, answer).c_str(), ios::app);
+                    cout << "ip:" << ip << "-" << number << " save file" << endl;
+                    break;
+                }
+                else
+                {
+                    out << answer;
+                }
+            }
         }
         else if (An == CLOSEFILE && flag == 1)
         {
@@ -97,11 +122,7 @@ void zwc(SOCKET sock, string ip, string number)
 }
 int main()
 {
-    stw["00000"] = EXIT;
-    stw["00100"] = MKFILE;
-    stw["01000"] = CATFILE;
-    stw["01101"] = OPENFILE;
-    stw["10000"] = CLOSEFILE;
+
     WSADATA wsadata;
     WSAStartup(MAKEWORD(2, 2), &wsadata);
     SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
